@@ -35,6 +35,8 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ItemHolder>{
         void onItemClick(Cursor cursor, int clickedItemIndex);
     }
 
+
+
     @Override
     public ItemHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         context = parent.getContext();

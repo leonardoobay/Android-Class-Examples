@@ -29,6 +29,9 @@ public class MainActivity extends AppCompatActivity
     static final String TAG = "mainactivity";
     private ProgressBar progress;
     private RecyclerView rv;
+    private MyAdapter adapter;
+    private Cursor cursor;
+    private SQLiteDatabase db;
 
     private static final int NEWS_LOADER = 1;
 
@@ -54,12 +57,17 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-        SQLiteDatabase db = new DBHelper(MainActivity.this).getReadableDatabase();
-        Cursor cursor = DatabaseUtils.getAll(db);
-
-        MyAdapter adapter = new MyAdapter(cursor, this);
+        db = new DBHelper(MainActivity.this).getReadableDatabase();
+        cursor = DatabaseUtils.getAll(db);
+        adapter = new MyAdapter(cursor, this);
         rv.setAdapter(adapter);
+    }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        db.close();
+        cursor.close();
     }
 
     @Override
@@ -101,10 +109,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onLoadFinished(Loader<Void> loader, Void data) {
         progress.setVisibility(View.GONE);
-        SQLiteDatabase db = new DBHelper(MainActivity.this).getReadableDatabase();
-        Cursor cursor = DatabaseUtils.getAll(db);
+        db = new DBHelper(MainActivity.this).getReadableDatabase();
+        cursor = DatabaseUtils.getAll(db);
 
-        MyAdapter adapter = new MyAdapter(cursor, this);
+        adapter = new MyAdapter(cursor, this);
         rv.setAdapter(adapter);
 
     }
@@ -127,6 +135,7 @@ public class MainActivity extends AppCompatActivity
     public void load() {
         LoaderManager loaderManager = getSupportLoaderManager();
         loaderManager.restartLoader(NEWS_LOADER, null, this).forceLoad();
+        adapter.notifyDataSetChanged();
     }
 
 }

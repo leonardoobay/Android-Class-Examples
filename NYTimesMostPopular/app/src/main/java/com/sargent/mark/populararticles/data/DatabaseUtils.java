@@ -42,6 +42,7 @@ public class DatabaseUtils {
             db.setTransactionSuccessful();
         } finally {
             db.endTransaction();
+            db.close();
         }
     }
 
