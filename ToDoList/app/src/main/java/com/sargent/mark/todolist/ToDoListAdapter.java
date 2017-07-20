@@ -46,7 +46,7 @@ public class ToDoListAdapter extends RecyclerView.Adapter<ToDoListAdapter.ItemHo
     }
 
     public interface ItemClickListener {
-        void onItemClick(int pos, String description, String duedate, long id);
+        void onItemClick(int pos, String description, String duedate, String category, long id);
     }
 
     public ToDoListAdapter(Cursor cursor, ItemClickListener listener) {
@@ -58,7 +58,7 @@ public class ToDoListAdapter extends RecyclerView.Adapter<ToDoListAdapter.ItemHo
         if (cursor != null) cursor.close();
         cursor = newCursor;
         if (newCursor != null) {
-            // Force the RecyclerView to refresh
+
             this.notifyDataSetChanged();
         }
     }
@@ -66,8 +66,10 @@ public class ToDoListAdapter extends RecyclerView.Adapter<ToDoListAdapter.ItemHo
     class ItemHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView descr;
         TextView due;
+        TextView categ;
         String duedate;
         String description;
+        String category;
         long id;
 
 
@@ -75,6 +77,7 @@ public class ToDoListAdapter extends RecyclerView.Adapter<ToDoListAdapter.ItemHo
             super(view);
             descr = (TextView) view.findViewById(R.id.description);
             due = (TextView) view.findViewById(R.id.dueDate);
+            categ = (TextView) view.findViewById(R.id.category);
             view.setOnClickListener(this);
         }
 
@@ -85,15 +88,17 @@ public class ToDoListAdapter extends RecyclerView.Adapter<ToDoListAdapter.ItemHo
 
             duedate = cursor.getString(cursor.getColumnIndex(Contract.TABLE_TODO.COLUMN_NAME_DUE_DATE));
             description = cursor.getString(cursor.getColumnIndex(Contract.TABLE_TODO.COLUMN_NAME_DESCRIPTION));
+            category = cursor.getString(cursor.getColumnIndex(Contract.TABLE_TODO.COLUMN_NAME_CATEGORY));
             descr.setText(description);
             due.setText(duedate);
+            categ.setText(category);
             holder.itemView.setTag(id);
         }
 
         @Override
         public void onClick(View v) {
             int pos = getAdapterPosition();
-            listener.onItemClick(pos, description, duedate, id);
+            listener.onItemClick(pos, description, category, duedate, id);
         }
     }
 

@@ -9,6 +9,12 @@
     android:weightSum="1"
     tools:context="com.sargent.mark.todolist.MainActivity">
 
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
@@ -21,6 +27,6 @@
         android:layout_height="0dip"
         android:layout_weight=".10"
         android:text="Add Item"
-        android:src="@drawable/ic_add_black_48dp"/>
+        />
 
 </LinearLayout>

@@ -12,6 +12,8 @@ public class Contract {
         public static final String TABLE_NAME = "todoitems";
 
         public static final String COLUMN_NAME_DESCRIPTION = "description";
+        // new colum for categories
+        public static final String COLUMN_NAME_CATEGORY = "category";
         public static final String COLUMN_NAME_DUE_DATE = "duedate";
     }
 }

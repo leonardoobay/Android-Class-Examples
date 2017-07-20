@@ -13,16 +13,21 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.Spinner;
+import android.widget.Toast;
 
 
 import com.sargent.mark.todolist.data.Contract;
 import com.sargent.mark.todolist.data.DBHelper;
 
-public class MainActivity extends AppCompatActivity implements AddToDoFragment.OnDialogCloseListener, UpdateToDoFragment.OnUpdateDialogCloseListener{
-
+public class MainActivity extends AppCompatActivity implements AddToDoFragment.OnDialogCloseListener, UpdateToDoFragment.OnUpdateDialogCloseListener, AdapterView.OnItemSelectedListener{
+//***
     private RecyclerView rv;
-    private FloatingActionButton button;
-    private DBHelper helper;
+   private FloatingActionButton button;
+   private DBHelper helper;
     private Cursor cursor;
     private SQLiteDatabase db;
     ToDoListAdapter adapter;
@@ -32,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements AddToDoFragment.O
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         Log.d(TAG, "oncreate called in main activity");
         button = (FloatingActionButton) findViewById(R.id.addToDo);
         button.setOnClickListener(new View.OnClickListener() {
@@ -42,6 +48,42 @@ public class MainActivity extends AppCompatActivity implements AddToDoFragment.O
                 frag.show(fm, "addtodofragment");
             }
         });
+
+        // Create the spinner for main ui
+
+        //*****
+        Spinner spinner = (Spinner) findViewById(R.id.spinner);
+        spinner.setOnItemSelectedListener(this);
+
+
+        ArrayAdapter adapter = ArrayAdapter.createFromResource(this,
+                R.array.categories_array, android.R.layout.simple_spinner_dropdown_item);
+        adapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
+
+
+
+        // Set the spinner to the adapter
+        spinner.setAdapter(adapter);
+//******
+
+//       Spinner spinner = (Spinner) findViewById(R.id.spinner);
+//        //"Education","Automotive","LoveLife","Work"};
+//        String [] categories ={"Education","Car","Work","DateLife"};
+//     //   List<String> categories = new ArrayList<String>();
+//       // categories.add("Education");
+//        //categories.add("Car");
+//        //categories.add("Work");
+//       // categories.add("DateLife");
+//        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, categories);
+//        dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//
+//        // attaching data adapter to spinner
+//        spinner.setAdapter(dataAdapter);
+//
+
+
+
+        //******
         rv = (RecyclerView) findViewById(R.id.recyclerView);
         rv.setLayoutManager(new LinearLayoutManager(this));
     }
@@ -64,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements AddToDoFragment.O
         adapter = new ToDoListAdapter(cursor, new ToDoListAdapter.ItemClickListener() {
 
             @Override
-            public void onItemClick(int pos, String description, String duedate, long id) {
+            public void onItemClick(int pos, String description, String category, String duedate, long id) {
                 Log.d(TAG, "item click id: " + id);
                 String[] dateInfo = duedate.split("-");
                 int year = Integer.parseInt(dateInfo[0].replaceAll("\\s",""));
@@ -73,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements AddToDoFragment.O
 
                 FragmentManager fm = getSupportFragmentManager();
 
-                UpdateToDoFragment frag = UpdateToDoFragment.newInstance(year, month, day, description, id);
+                UpdateToDoFragment frag = UpdateToDoFragment.newInstance(year, month, day, description, category, id);
                 frag.show(fm, "updatetodofragment");
             }
         });
@@ -98,8 +140,8 @@ public class MainActivity extends AppCompatActivity implements AddToDoFragment.O
     }
 
     @Override
-    public void closeDialog(int year, int month, int day, String description) {
-        addToDo(db, description, formatDate(year, month, day));
+    public void closeDialog(int year, int month, int day, String description, String category) {
+        addToDo(db, description, category, formatDate(year, month, day));
         cursor = getAllItems(db);
         adapter.swapCursor(cursor);
     }
@@ -122,9 +164,10 @@ public class MainActivity extends AppCompatActivity implements AddToDoFragment.O
         );
     }
 
-    private long addToDo(SQLiteDatabase db, String description, String duedate) {
+    private long addToDo(SQLiteDatabase db, String description, String category, String duedate) {
         ContentValues cv = new ContentValues();
         cv.put(Contract.TABLE_TODO.COLUMN_NAME_DESCRIPTION, description);
+        cv.put(Contract.TABLE_TODO.COLUMN_NAME_CATEGORY, category);
         cv.put(Contract.TABLE_TODO.COLUMN_NAME_DUE_DATE, duedate);
         return db.insert(Contract.TABLE_TODO.TABLE_NAME, null, cv);
     }
@@ -135,20 +178,83 @@ public class MainActivity extends AppCompatActivity implements AddToDoFragment.O
     }
 
 
-    private int updateToDo(SQLiteDatabase db, int year, int month, int day, String description, long id){
+    private int updateToDo(SQLiteDatabase db, int year, int month, int day, String description, String category, long id){
 
         String duedate = formatDate(year, month - 1, day);
 
         ContentValues cv = new ContentValues();
         cv.put(Contract.TABLE_TODO.COLUMN_NAME_DESCRIPTION, description);
+        cv.put(Contract.TABLE_TODO.COLUMN_NAME_CATEGORY, category);
         cv.put(Contract.TABLE_TODO.COLUMN_NAME_DUE_DATE, duedate);
 
         return db.update(Contract.TABLE_TODO.TABLE_NAME, cv, Contract.TABLE_TODO._ID + "=" + id, null);
     }
 
     @Override
-    public void closeUpdateDialog(int year, int month, int day, String description, long id) {
-        updateToDo(db, year, month, day, description, id);
+    public void closeUpdateDialog(int year, int month, int day, String description, String category, long id) {
+        updateToDo(db, year, month, day, description, category, id);
         adapter.swapCursor(getAllItems(db));
+    }
+
+    // check  checkbox method
+    public void onCheckboxClicked(View view) {
+        // Cast the view to a checkbox object
+        CheckBox checkBox = (CheckBox) view;
+
+
+        if (checkBox.isChecked()) {
+            // Toast
+            Toast.makeText(MainActivity.this, "Completed", Toast.LENGTH_SHORT).show();
+            checkBox.setChecked(true);
+        }
+    }
+
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        String category = parent.getItemAtPosition(position).toString();
+
+        Toast.makeText(parent.getContext(), category + " is selected", Toast.LENGTH_SHORT).show();
+
+
+        if (category.equals("Default")) {
+            cursor = getAllItems(db);
+        }
+        // Change cursor to display different todos
+        else {
+            cursor = getItemsBasedOnCategory(db, category);
+        }
+
+
+        adapter = new ToDoListAdapter(cursor, new ToDoListAdapter.ItemClickListener() {
+
+            @Override
+            public void onItemClick(int pos, String description, String category, String duedate, long id) {
+                Log.d(TAG, "item click id: " + id);
+                String[] dateInfo = duedate.split("-");
+                int year = Integer.parseInt(dateInfo[0].replaceAll("\\s", ""));
+                int month = Integer.parseInt(dateInfo[1].replaceAll("\\s", ""));
+                int day = Integer.parseInt(dateInfo[2].replaceAll("\\s", ""));
+
+                FragmentManager fm = getSupportFragmentManager();
+
+                UpdateToDoFragment frag = UpdateToDoFragment.newInstance(year, month, day, description, category, id);
+                frag.show(fm, "updatetodofragment");
+            }
+        });
+
+
+        rv.setAdapter(adapter);
+
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
+    }
+
+    private Cursor getItemsBasedOnCategory(SQLiteDatabase db, String category) {
+        return db.rawQuery("SELECT * FROM " + Contract.TABLE_TODO.TABLE_NAME +" WHERE " + Contract.TABLE_TODO.COLUMN_NAME_CATEGORY +" = ?", new String[] {category}
+        );
     }
 }
